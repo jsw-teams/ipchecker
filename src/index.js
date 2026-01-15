@@ -1,43 +1,5 @@
 // src/index.js
 
-const ALLOWED_ORIGINS = new Set([
-  "https://test-ipv6.jsw.ac.cn",
-  "http://test-ipv6.jsw.ac.cn",
-]);
-
-function baseHeaders() {
-  return {
-    "cache-control": "no-store, max-age=0",
-    "x-content-type-options": "nosniff",
-    "referrer-policy": "no-referrer",
-    "permissions-policy": "geolocation=()",
-  };
-}
-
-function corsHeaders(req) {
-  const origin = req.headers.get("origin") || "";
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
-    return {
-      "access-control-allow-origin": origin,
-      "access-control-allow-methods": "GET, OPTIONS",
-      "access-control-allow-headers": "content-type",
-      "vary": "origin",
-    };
-  }
-  return {};
-}
-
-function json(req, data, status = 200) {
-  return new Response(JSON.stringify(data, null, 2), {
-    status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      ...baseHeaders(),
-      ...corsHeaders(req),
-    },
-  });
-}
-
 function familyOf(ip) {
   if (!ip) return "unknown";
   if (ip.includes(":")) return "ipv6";
@@ -45,21 +7,30 @@ function familyOf(ip) {
   return "unknown";
 }
 
+function baseHeaders() {
+  return {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store, max-age=0",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+    "permissions-policy": "geolocation=()",
+  };
+}
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: baseHeaders(),
+  });
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
 
-    // CORS preflight
-    if (request.method === "OPTIONS" && url.pathname === "/api/ip") {
-      return new Response(null, {
-        status: 204,
-        headers: { ...baseHeaders(), ...corsHeaders(request) },
-      });
-    }
-
-    // 只开放 /api/ip
+    // 只开放 /api/ip，其余 404（静态资源由 assets 目录处理）
     if (request.method !== "GET" || url.pathname !== "/api/ip") {
-      return new Response("Not Found", { status: 404, headers: baseHeaders() });
+      return new Response("Not Found", { status: 404, headers: { "cache-control": "no-store" } });
     }
 
     const info = request.info || {};
@@ -70,13 +41,13 @@ export default {
       time: new Date().toISOString(),
       ip,
       family: familyOf(ip),
-      info, // 你 ESA 环境里带的 ip_city_en / isp 等都保留
+      info,
       headers: {
-        "x-forwarded-for": request.headers.get("x-forwarded-for") || "",
         "user-agent": request.headers.get("user-agent") || "",
+        "x-forwarded-for": request.headers.get("x-forwarded-for") || "",
       },
     };
 
-    return json(request, out, 200);
+    return json(out, 200);
   },
 };

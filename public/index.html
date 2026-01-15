@@ -6,61 +6,37 @@
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="referrer" content="no-referrer" />
-  <meta name="description" content="IPv4 / IPv6 connectivity test. Check your public IPs and network readiness." />
-  <title>IPv4 / IPv6 Test | JSW</title>
+  <meta name="description" content="Check whether your current connection uses IPv4 or IPv6, and view your public IP." />
+  <title>IPv4 / IPv6 Check | JSW</title>
   <style>
-    :root{
-      --bg:#fff; --fg:#000; --muted:#333; --line:#000; --soft:#e6e6e6;
-      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      --sans: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif;
-    }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans)}
-    a{color:inherit}
-    .top{
-      border-bottom:1px solid var(--line);
-      padding:10px 12px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      font-size:14px;
-    }
-    .brand{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-    .brand strong{font-weight:900}
-    .pill{border:1px solid var(--line); border-radius:999px; padding:6px 10px; background:#f6f6f6; font-size:12px}
-    .wrap{max-width:920px;margin:0 auto;padding:16px 12px 28px}
-    h1{margin:10px 0 6px; font-size:24px; font-weight:900}
-    .sub{margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.6}
-    .bar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 14px}
-    button{
-      background:#000;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-size:14px;cursor:pointer
-    }
+    :root{--bg:#fff;--fg:#000;--muted:#333;--line:#000;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif}
+    .top{border-bottom:1px solid var(--line);padding:10px 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px}
+    .pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#f6f6f6;font-size:12px}
+    .wrap{max-width:900px;margin:0 auto;padding:18px 12px 30px}
+    h1{margin:10px 0 6px;font-size:24px;font-weight:900}
+    .sub{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.6}
+    .card{border:1px solid var(--line);border-radius:12px;padding:14px}
+    .big{font-size:40px;font-weight:900;line-height:1.1;margin:0}
+    .mono{font-family:var(--mono);word-break:break-all}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    button{background:#000;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-size:14px;cursor:pointer}
     button:focus{outline:3px solid #000;outline-offset:2px}
-    select{
-      border:1px solid var(--line); border-radius:8px; padding:9px 10px; background:#fff; color:#000;
-      font-size:14px;
-    }
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media (min-width:820px){.grid{grid-template-columns:1fr 1fr 1fr}}
-    .card{border:1px solid var(--line); border-radius:12px; padding:12px}
-    .k{margin:0 0 6px; font-size:12px; color:var(--muted); letter-spacing:.02em}
-    .row{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
-    .v{margin:0; font-size:16px; font-weight:900; word-break:break-all}
-    .mono{font-family:var(--mono)}
-    .meta{margin-top:6px; font-size:12px; color:var(--muted); line-height:1.5}
-    .tag{font-weight:900}
-    .ok{color:#0a7a2f}
-    .bad{color:#b00020}
-    .warn{color:#8a5a00}
-    details{margin-top:14px}
-    pre{border:1px solid var(--line); border-radius:12px; padding:12px; overflow:auto; font-size:12px; line-height:1.5}
+    select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:#000;font-size:14px}
+    .ok{color:#0a7a2f;font-weight:900}
+    .warn{color:#8a5a00;font-weight:900}
+    details{margin-top:12px}
+    pre{border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto;font-size:12px;line-height:1.5}
   </style>
 </head>
 <body>
   <nav class="top" aria-label="Top">
-    <div class="brand">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <strong class="mono">JSW</strong>
-      <span class="pill"><span id="host" class="mono"></span></span>
-      <span class="pill" id="statePill">…</span>
+      <span class="pill">Host: <span id="host" class="mono"></span></span>
     </div>
-    <div class="brand">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <label class="mono" for="langSel" style="font-size:12px;color:var(--muted)">LANG</label>
       <select id="langSel" aria-label="Language">
         <option value="en">English</option>
@@ -71,220 +47,133 @@
   </nav>
 
   <main class="wrap" role="main">
-    <h1 id="title">IPv4 / IPv6 Test</h1>
-    <p class="sub" id="subtitle">Check whether your network supports IPv4/IPv6 and view your public IPs.</p>
+    <h1 id="title">IPv4 / IPv6 Check</h1>
+    <p class="sub" id="subtitle">Shows which IP version your current connection prefers.</p>
 
-    <div class="bar">
-      <button id="btn">Replay</button>
-    </div>
+    <section class="card" aria-live="polite">
+      <p class="big" id="headline">…</p>
+      <p class="sub" id="hint" style="margin-top:8px">…</p>
 
-    <section class="grid" aria-label="Results">
-      <div class="card" aria-live="polite">
-        <p class="k" id="kV4">IPv4 record</p>
-        <div class="row">
-          <p class="v"><span class="tag" id="sV4">…</span></p>
-          <p class="v mono" id="ipV4">-</p>
-        </div>
-        <div class="meta mono" id="mV4">-</div>
+      <div class="row">
+        <span class="pill">IP: <span id="ip" class="mono">-</span></span>
+        <span class="pill">Family: <span id="family" class="mono">-</span></span>
+        <span class="pill"><span id="ts" class="mono">-</span></span>
       </div>
 
-      <div class="card" aria-live="polite">
-        <p class="k" id="kV6">IPv6 record</p>
-        <div class="row">
-          <p class="v"><span class="tag" id="sV6">…</span></p>
-          <p class="v mono" id="ipV6">-</p>
-        </div>
-        <div class="meta mono" id="mV6">-</div>
+      <div class="row" style="margin-top:12px">
+        <button id="btn">Replay</button>
       </div>
 
-      <div class="card" aria-live="polite">
-        <p class="k" id="kDS">Dual stack</p>
-        <div class="row">
-          <p class="v"><span class="tag" id="sDS">…</span></p>
-          <p class="v mono" id="ipDS">-</p>
-        </div>
-        <div class="meta mono" id="mDS">-</div>
-      </div>
+      <details>
+        <summary id="dbg">Debug</summary>
+        <pre id="raw">（empty）</pre>
+      </details>
     </section>
-
-    <details>
-      <summary id="dbgTitle">Debug</summary>
-      <pre id="raw">（empty）</pre>
-    </details>
   </main>
 
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
+  $("host").textContent = location.hostname;
 
   const T = {
     en: {
-      title: "Test your IPv4 / IPv6 connectivity.",
-      subtitle: "Check whether your network supports IPv4/IPv6 and view your public IPs.",
+      title: "IPv4 / IPv6 Check",
+      subtitle: "Shows which IP version your current connection prefers.",
       replay: "Replay",
       dbg: "Debug",
-      labels: { v4: "IPv4 record", v6: "IPv6 record", ds: "Dual stack" },
-      state: { pending: "pending", done: "done" },
-      status: { pass: "PASS", fail: "FAIL", warn: "WARN" },
-      expected: { v4: "expected ipv4", v6: "expected ipv6" },
-      failed: "Failed to fetch"
+      head_v6: "You are on IPv6.",
+      hint_v6: "Congrats — you can access IPv6-only websites.",
+      head_v4: "You are on IPv4.",
+      hint_v4: "IPv6 may be unavailable or your network prefers IPv4 right now.",
+      head_u: "Unknown.",
+      hint_u: "Could not determine IP family from this request."
     },
     "zh-Hans": {
-      title: "测试你的 IPv4 / IPv6 连通性",
-      subtitle: "快速查看你的网络是否支持 IPv4/IPv6，并展示公网出口地址。",
+      title: "IPv4 / IPv6 检测",
+      subtitle: "显示你当前这次访问更偏向使用哪种 IP 协议栈。",
       replay: "重新测试",
       dbg: "调试信息",
-      labels: { v4: "IPv4 记录", v6: "IPv6 记录", ds: "双栈" },
-      state: { pending: "测试中", done: "完成" },
-      status: { pass: "通过", fail: "失败", warn: "警告" },
-      expected: { v4: "预期 ipv4", v6: "预期 ipv6" },
-      failed: "请求失败"
+      head_v6: "当前使用 IPv6",
+      hint_v6: "恭喜：你可以访问纯 IPv6 网站。",
+      head_v4: "当前使用 IPv4",
+      hint_v4: "IPv6 可能不可用，或此刻网络更偏向 IPv4。",
+      head_u: "未知",
+      hint_u: "本次请求无法判断 IP 协议栈。"
     },
     "zh-Hant": {
-      title: "測試你的 IPv4 / IPv6 連通性",
-      subtitle: "快速查看你的網路是否支援 IPv4/IPv6，並顯示公網出口位址。",
+      title: "IPv4 / IPv6 檢測",
+      subtitle: "顯示你目前這次連線更偏向使用哪種 IP 協定棧。",
       replay: "重新測試",
       dbg: "除錯資訊",
-      labels: { v4: "IPv4 記錄", v6: "IPv6 記錄", ds: "雙棧" },
-      state: { pending: "測試中", done: "完成" },
-      status: { pass: "通過", fail: "失敗", warn: "警告" },
-      expected: { v4: "預期 ipv4", v6: "預期 ipv6" },
-      failed: "請求失敗"
+      head_v6: "目前使用 IPv6",
+      hint_v6: "恭喜：你可以存取純 IPv6 網站。",
+      head_v4: "目前使用 IPv4",
+      hint_v4: "IPv6 可能不可用，或此刻網路更偏向 IPv4。",
+      head_u: "未知",
+      hint_u: "本次請求無法判斷 IP 協定棧。"
     }
   };
 
   function detectLang() {
     const L = ((navigator.languages && navigator.languages[0]) || navigator.language || "en").toLowerCase();
-    if (L.startsWith("zh")) {
-      const hant = /tw|hk|mo|hant/.test(L);
-      return hant ? "zh-Hant" : "zh-Hans";
-    }
+    if (L.startsWith("zh")) return /tw|hk|mo|hant/.test(L) ? "zh-Hant" : "zh-Hans";
     return "en";
   }
 
-  function applyLang(lang) {
+  let lang = detectLang();
+  const langSel = $("langSel");
+  langSel.value = lang;
+
+  function applyLang() {
     const t = T[lang] || T.en;
     document.documentElement.lang = lang === "zh-Hans" ? "zh-CN" : (lang === "zh-Hant" ? "zh-TW" : "en");
     $("title").textContent = t.title;
     $("subtitle").textContent = t.subtitle;
     $("btn").textContent = t.replay;
-    $("dbgTitle").textContent = t.dbg;
-    $("kV4").textContent = t.labels.v4;
-    $("kV6").textContent = t.labels.v6;
-    $("kDS").textContent = t.labels.ds;
+    $("dbg").textContent = t.dbg;
   }
-
-  function setState(lang, key) {
-    const t = T[lang] || T.en;
-    $("statePill").textContent = t.state[key] || key;
-  }
-
-  function tag(el, kind, text) {
-    el.className = "tag " + (kind === "ok" ? "ok" : kind === "warn" ? "warn" : "bad");
-    el.textContent = text;
-  }
-
-  async function fetchJSON(url, timeoutMs) {
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), timeoutMs);
-    const t0 = performance.now();
-    try {
-      const r = await fetch(url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now(), { cache: "no-store", signal: ac.signal });
-      const txt = await r.text();
-      const t1 = performance.now();
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return { ms: (t1 - t0), data: JSON.parse(txt) };
-    } finally {
-      clearTimeout(t);
-    }
-  }
-
-  function showResult(lang, which, kind, ip, fam, ms, note) {
-    const t = T[lang] || T.en;
-    const s = which === "v4" ? $("sV4") : which === "v6" ? $("sV6") : $("sDS");
-    const ipEl = which === "v4" ? $("ipV4") : which === "v6" ? $("ipV6") : $("ipDS");
-    const m = which === "v4" ? $("mV4") : which === "v6" ? $("mV6") : $("mDS");
-
-    tag(s, kind, kind === "ok" ? t.status.pass : kind === "warn" ? t.status.warn : t.status.fail);
-    ipEl.textContent = ip || "-";
-    const parts = [];
-    if (typeof ms === "number" && isFinite(ms)) parts.push(ms.toFixed(1) + " ms");
-    if (fam) parts.push(fam);
-    if (note) parts.push(note);
-    m.textContent = parts.length ? parts.join(" · ") : "-";
-  }
-
-  const langSel = $("langSel");
-  let lang = detectLang();
-  langSel.value = lang;
-  applyLang(lang);
-
-  $("host").textContent = location.hostname;
-
-  const endpoints = {
-    v4: "https://test-v4.jsw.ac.cn/api/ip",
-    v6: "https://test-v6.jsw.ac.cn/api/ip",
-    ds: "/api/ip"
-  };
 
   async function run() {
-    const t = T[lang] || T.en;
-    setState(lang, "pending");
+    applyLang();
+    $("headline").textContent = "…";
+    $("hint").textContent = "…";
+    $("ip").textContent = "-";
+    $("family").textContent = "-";
+    $("ts").textContent = "-";
     $("raw").textContent = "（empty）";
 
-    showResult(lang, "v4", "warn", "-", "", NaN, "…");
-    showResult(lang, "v6", "warn", "-", "", NaN, "…");
-    showResult(lang, "ds", "warn", "-", "", NaN, "…");
-
-    const pack = { ts: new Date().toISOString() };
-    const timeout = 5000;
-
-    // dual (same origin)
     try {
-      const { ms, data } = await fetchJSON(endpoints.ds, timeout);
-      pack.dual = data;
-      showResult(lang, "ds", "ok", data.ip || "", data.family || "", ms, data.host ? ("host=" + data.host) : "");
+      const r = await fetch(`/api/ip?ts=${Date.now()}`, { cache: "no-store" });
+      const txt = await r.text();
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const data = JSON.parse(txt);
+
+      $("ip").textContent = data.ip || "-";
+      $("family").textContent = data.family || "unknown";
+      $("ts").textContent = data.time || new Date().toISOString();
+      $("raw").textContent = JSON.stringify(data, null, 2);
+
+      const t = T[lang] || T.en;
+      if (data.family === "ipv6") {
+        $("headline").innerHTML = `<span class="ok">${t.head_v6}</span>`;
+        $("hint").textContent = t.hint_v6;
+      } else if (data.family === "ipv4") {
+        $("headline").innerHTML = `<span class="warn">${t.head_v4}</span>`;
+        $("hint").textContent = t.hint_v4;
+      } else {
+        $("headline").textContent = t.head_u;
+        $("hint").textContent = t.hint_u;
+      }
     } catch (e) {
-      pack.dual_error = String(e && e.message ? e.message : e);
-      showResult(lang, "ds", "bad", "", "", NaN, pack.dual_error);
+      const t = T[lang] || T.en;
+      $("headline").textContent = t.head_u;
+      $("hint").textContent = String(e && e.message ? e.message : e);
     }
-
-    // v4 + v6 parallel
-    await Promise.allSettled([
-      (async () => {
-        try {
-          const { ms, data } = await fetchJSON(endpoints.v4, timeout);
-          pack.v4 = data;
-          const ok = (data.family === "ipv4");
-          showResult(lang, "v4", ok ? "ok" : "warn", data.ip || "", data.family || "", ms, ok ? "" : t.expected.v4);
-        } catch (e) {
-          pack.v4_error = String(e && e.message ? e.message : e);
-          showResult(lang, "v4", "bad", "", "", NaN, t.failed);
-        }
-      })(),
-      (async () => {
-        try {
-          const { ms, data } = await fetchJSON(endpoints.v6, timeout);
-          pack.v6 = data;
-          const ok = (data.family === "ipv6");
-          showResult(lang, "v6", ok ? "ok" : "warn", data.ip || "", data.family || "", ms, ok ? "" : t.expected.v6);
-        } catch (e) {
-          pack.v6_error = String(e && e.message ? e.message : e);
-          showResult(lang, "v6", "bad", "", "", NaN, t.failed);
-        }
-      })()
-    ]);
-
-    $("raw").textContent = JSON.stringify(pack, null, 2);
-    setState(lang, "done");
   }
 
   $("btn").addEventListener("click", run);
-  langSel.addEventListener("change", () => {
-    lang = langSel.value;
-    applyLang(lang);
-    run();
-  });
+  langSel.addEventListener("change", () => { lang = langSel.value; run(); });
 
   run();
 })();

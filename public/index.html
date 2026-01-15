@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
-  <title>JSW 单域名 IPv4/IPv6 检测</title>
+  <title>JSW IPv4 / IPv6 检测</title>
   <style>
     html,body{margin:0;padding:0;background:#fff;color:#000;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif}
-    a{color:inherit}
-    .wrap{max-width:900px;margin:0 auto;padding:20px}
+    .wrap{max-width:920px;margin:0 auto;padding:20px}
     h1{font-size:22px;margin:0 0 12px}
     .sub{font-size:14px;line-height:1.6;margin:0 0 18px;opacity:.85}
     .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
@@ -24,108 +23,105 @@
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
     .ok{font-weight:700}
     .bad{font-weight:700}
-    details{margin-top:12px}
-    pre{border:1px solid #000;border-radius:12px;padding:12px;overflow:auto}
   </style>
 </head>
 <body>
-  <main class="wrap" role="main">
-    <h1>JSW 单域名 IPv4/IPv6 检测</h1>
-    <p class="sub">
-      只请求一次 <span class="mono">/api/ip</span>，以 <span class="mono">X-Forwarded-For</span> 代理链推断 IPv4/IPv6（best-effort），同时展示本次连接的权威地址。
-    </p>
+<main class="wrap" role="main">
+  <h1>JSW IPv4 / IPv6 检测</h1>
+  <p class="sub">
+    机制：主站（双栈）+ 一个仅 A 记录探针（IPv4）+ 一个仅 AAAA 记录探针（IPv6），和 test-ipv6.com 的思路一致。:contentReference[oaicite:3]{index=3}
+  </p>
 
-    <div class="bar">
-      <button id="btn">刷新检测</button>
-      <span class="small">当前域名：<span id="host" class="mono"></span></span>
+  <div class="bar">
+    <button id="btn">重新测试</button>
+    <span class="small">当前域名：<span class="mono" id="host"></span></span>
+  </div>
+
+  <section class="grid" aria-label="测试结果">
+    <div class="card" aria-live="polite">
+      <p class="k">Dual Stack（主站 /api/ip）</p>
+      <p class="v" id="dual">pending…</p>
+      <p class="small" id="dualMeta"></p>
     </div>
 
-    <section class="grid" aria-label="检测结果">
-      <div class="card" aria-live="polite">
-        <p class="k">本次连接（connection.remote_addr）</p>
-        <p class="v" id="conn">检测中…</p>
-        <p class="small" id="connMeta"></p>
-      </div>
+    <div class="card" aria-live="polite">
+      <p class="k">IPv4 DNS record（test-v4）</p>
+      <p class="v" id="v4">pending…</p>
+      <p class="small" id="v4Meta"></p>
+    </div>
 
-      <div class="card" aria-live="polite">
-        <p class="k">推断结果（来自 X-Forwarded-For）</p>
-        <p class="v" id="guess">检测中…</p>
-        <p class="small" id="guessMeta"></p>
-      </div>
+    <div class="card" aria-live="polite">
+      <p class="k">IPv6 DNS record（test-v6）</p>
+      <p class="v" id="v6">pending…</p>
+      <p class="small" id="v6Meta"></p>
+    </div>
 
-      <div class="card" aria-live="polite">
-        <p class="k">IPv4（guess.ipv4）</p>
-        <p class="v" id="v4">检测中…</p>
-        <p class="small" id="v4Meta"></p>
-      </div>
-
-      <div class="card" aria-live="polite">
-        <p class="k">IPv6（guess.ipv6）</p>
-        <p class="v" id="v6">检测中…</p>
-        <p class="small" id="v6Meta"></p>
-      </div>
-    </section>
-
-    <details>
-      <summary>查看原始 JSON（调试用）</summary>
-      <pre id="raw">（空）</pre>
-    </details>
-  </main>
+    <div class="card" aria-live="polite">
+      <p class="k">提示</p>
+      <p class="small">
+        IPv6-only 用户在 NAT64/DNS64/代理环境下也可能“能访问 IPv4 探针”；这是网络过渡机制导致，不一定代表你真的有原生 IPv4。:contentReference[oaicite:4]{index=4}
+      </p>
+    </div>
+  </section>
+</main>
 
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const elHost = $("host"), elBtn = $("btn");
-  const elConn = $("conn"), elConnMeta = $("connMeta");
-  const elGuess = $("guess"), elGuessMeta = $("guessMeta");
-  const elV4 = $("v4"), elV4Meta = $("v4Meta");
-  const elV6 = $("v6"), elV6Meta = $("v6Meta");
-  const elRaw = $("raw");
+  $("host").textContent = location.hostname;
 
-  elHost.textContent = location.hostname;
+  const dualURL = `/api/ip?ts=${Date.now()}`;
+  const v4URL = `https://test-v4.jsw.ac.cn/api/ip?ts=${Date.now()}`;
+  const v6URL = `https://test-v6.jsw.ac.cn/api/ip?ts=${Date.now()}`;
 
-  async function run() {
-    elConn.textContent = "检测中…"; elConnMeta.textContent = "";
-    elGuess.textContent = "检测中…"; elGuessMeta.textContent = "";
-    elV4.textContent = "检测中…"; elV4Meta.textContent = "";
-    elV6.textContent = "检测中…"; elV6Meta.textContent = "";
-    elRaw.textContent = "（空）";
-
+  async function fetchJSON(url, ms) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), ms);
     try {
-      const r = await fetch(`/api/ip?ts=${Date.now()}`, { cache: "no-store" });
+      const r = await fetch(url, { cache: "no-store", signal: ac.signal });
       const txt = await r.text();
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const data = JSON.parse(txt);
-
-      elRaw.textContent = JSON.stringify(data, null, 2);
-
-      const c = data.connection || {};
-      const g = data.guess || {};
-
-      elConn.innerHTML = `<span class="ok">✓</span> <span class="mono">${c.ip || "-"}</span>`;
-      elConnMeta.textContent = `${c.family || "unknown"}${c.port ? " · port=" + c.port : ""}`;
-
-      elGuess.innerHTML = g.client_ip
-        ? `<span class="ok">✓</span> <span class="mono">${g.client_ip}</span>`
-        : `<span class="bad">✗</span> 未能从代理链推断客户端公网 IP`;
-      elGuessMeta.textContent = g.note || "";
-
-      elV4.innerHTML = g.ipv4 ? `<span class="ok">✓</span> <span class="mono">${g.ipv4}</span>` : `<span class="bad">✗</span> 未发现公网 IPv4`;
-      elV4Meta.textContent = g.ipv4 ? "来自 XFF 代理链" : "可能无 IPv4 / 被隐藏 / 链路不提供";
-
-      elV6.innerHTML = g.ipv6 ? `<span class="ok">✓</span> <span class="mono">${g.ipv6}</span>` : `<span class="bad">✗</span> 未发现公网 IPv6`;
-      elV6Meta.textContent = g.ipv6 ? "来自 XFF 代理链" : "可能无 IPv6 / 被隐藏 / 链路不提供";
-    } catch (e) {
-      const msg = (e && e.message) ? e.message : String(e);
-      elConn.innerHTML = `<span class="bad">✗</span> 失败`;
-      elConnMeta.textContent = msg;
-      elGuess.textContent = "失败";
-      elV4.textContent = "失败";
-      elV6.textContent = "失败";
+      return JSON.parse(txt);
+    } finally {
+      clearTimeout(t);
     }
   }
 
-  elBtn.addEventListener("click", run);
+  function show(el, meta, ok, ip, extra) {
+    el.innerHTML = ok
+      ? `<span class="ok">PASS</span> <span class="mono">${ip || "-"}</span>`
+      : `<span class="bad">FAIL</span>`;
+    meta.textContent = extra || "";
+  }
+
+  async function run() {
+    const dual = $("dual"), dualMeta = $("dualMeta");
+    const v4 = $("v4"), v4Meta = $("v4Meta");
+    const v6 = $("v6"), v6Meta = $("v6Meta");
+
+    show(dual, dualMeta, true, "pending…", "");
+    show(v4, v4Meta, true, "pending…", "");
+    show(v6, v6Meta, true, "pending…", "");
+
+    const tmo = 4500;
+
+    // 1) dual (same origin)
+    fetchJSON(dualURL, tmo)
+      .then(d => show(dual, dualMeta, true, d.ip, `${d.family} · host=${d.host}`))
+      .catch(e => show(dual, dualMeta, false, "", String(e && e.message ? e.message : e)));
+
+    // 2) v4 probe
+    fetchJSON(v4URL, tmo)
+      .then(d => show(v4, v4Meta, true, d.ip, `${d.family} · host=${d.host}`))
+      .catch(e => show(v4, v4Meta, false, "", String(e && e.message ? e.message : e)));
+
+    // 3) v6 probe
+    fetchJSON(v6URL, tmo)
+      .then(d => show(v6, v6Meta, true, d.ip, `${d.family} · host=${d.host}`))
+      .catch(e => show(v6, v6Meta, false, "", String(e && e.message ? e.message : e)));
+  }
+
+  $("btn").addEventListener("click", run);
   run();
 })();
 </script>

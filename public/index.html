@@ -1,170 +1,114 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
-  <title>Test your IPv4 / IPv6 connectivity | JSW</title>
+  <meta name="referrer" content="no-referrer" />
+  <meta name="description" content="IPv4 / IPv6 connectivity test. Check your public IPs and network readiness." />
+  <title>IPv4 / IPv6 Test | JSW</title>
   <style>
     :root{
-      --bg:#fff; --fg:#000; --muted:#333;
-      --line:#000; --soft:#e6e6e6;
-      --ok:#0a7a2f; --bad:#b00020; --warn:#8a5a00;
-      --chip:#f6f6f6;
+      --bg:#fff; --fg:#000; --muted:#333; --line:#000; --soft:#e6e6e6;
       --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       --sans: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif;
     }
     html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans)}
-    a{color:inherit;text-decoration:underline}
-    .topbar{
+    a{color:inherit}
+    .top{
       border-bottom:1px solid var(--line);
       padding:10px 12px;
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center;
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
       font-size:14px;
     }
-    .wrap{max-width:980px;margin:0 auto;padding:14px 12px 28px}
-    h1{font-size:26px;margin:10px 0 8px; font-weight:800}
-    .sub{margin:0 0 14px; color:var(--muted); line-height:1.6; font-size:14px}
-    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:10px 0 16px}
+    .brand{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .brand strong{font-weight:900}
+    .pill{border:1px solid var(--line); border-radius:999px; padding:6px 10px; background:#f6f6f6; font-size:12px}
+    .wrap{max-width:920px;margin:0 auto;padding:16px 12px 28px}
+    h1{margin:10px 0 6px; font-size:24px; font-weight:900}
+    .sub{margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.6}
+    .bar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 14px}
     button{
-      background:#000;color:#fff;border:0;border-radius:6px;
-      padding:9px 12px;font-size:14px;cursor:pointer
+      background:#000;color:#fff;border:0;border-radius:8px;padding:10px 14px;font-size:14px;cursor:pointer
     }
     button:focus{outline:3px solid #000;outline-offset:2px}
-    .pill{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
-    .mono{font-family:var(--mono)}
+    select{
+      border:1px solid var(--line); border-radius:8px; padding:9px 10px; background:#fff; color:#000;
+      font-size:14px;
+    }
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media (min-width:900px){.grid{grid-template-columns: 280px 1fr}}
-    .scoreBox{
-      border:1px solid var(--line); padding:12px; border-radius:8px;
-    }
-    .scoreNum{font-size:56px; font-weight:900; line-height:1; margin:6px 0}
-    .scoreHint{font-size:12px; color:var(--muted); line-height:1.5}
-    .panel{
-      border:1px solid var(--line); border-radius:8px; overflow:hidden;
-    }
-    .panelHd{
-      padding:10px 12px; border-bottom:1px solid var(--line);
-      font-weight:800; font-size:14px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    table{width:100%; border-collapse:collapse}
-    td,th{border-bottom:1px solid var(--soft); padding:10px 12px; vertical-align:top}
-    th{font-size:12px; text-transform:uppercase; letter-spacing:.04em; text-align:left}
-    .tname{font-weight:800}
-    .tdesc{color:var(--muted); font-size:12px; line-height:1.5; margin-top:4px}
-    .status{white-space:nowrap; font-weight:800; font-size:13px}
-    .ok{color:var(--ok)}
-    .bad{color:var(--bad)}
-    .warn{color:var(--warn)}
-    .meta{font-size:12px;color:var(--muted);margin-top:4px}
-    details{margin-top:12px}
-    pre{
-      border:1px solid var(--line); border-radius:8px;
-      padding:12px; overflow:auto; font-size:12px; line-height:1.5;
-    }
-    .foot{margin-top:18px; font-size:12px; color:var(--muted); line-height:1.6}
-    .spin{
-      display:inline-block; width:12px; height:12px; border:2px solid #000; border-right-color:transparent;
-      border-radius:50%; animation: r 1s linear infinite; vertical-align:-2px;
-    }
-    @keyframes r{to{transform:rotate(360deg)}}
+    @media (min-width:820px){.grid{grid-template-columns:1fr 1fr 1fr}}
+    .card{border:1px solid var(--line); border-radius:12px; padding:12px}
+    .k{margin:0 0 6px; font-size:12px; color:var(--muted); letter-spacing:.02em}
+    .row{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+    .v{margin:0; font-size:16px; font-weight:900; word-break:break-all}
+    .mono{font-family:var(--mono)}
+    .meta{margin-top:6px; font-size:12px; color:var(--muted); line-height:1.5}
+    .tag{font-weight:900}
+    .ok{color:#0a7a2f}
+    .bad{color:#b00020}
+    .warn{color:#8a5a00}
+    details{margin-top:14px}
+    pre{border:1px solid var(--line); border-radius:12px; padding:12px; overflow:auto; font-size:12px; line-height:1.5}
   </style>
 </head>
 <body>
-  <nav class="topbar" aria-label="Top navigation">
-    <strong class="mono">JSW</strong>
-    <a href="#summary">Summary</a>
-    <a href="#tests">Tests Run</a>
-    <a href="#debug">Debug</a>
-    <span class="pill">Host: <span id="host" class="mono"></span></span>
+  <nav class="top" aria-label="Top">
+    <div class="brand">
+      <strong class="mono">JSW</strong>
+      <span class="pill"><span id="host" class="mono"></span></span>
+      <span class="pill" id="statePill">…</span>
+    </div>
+    <div class="brand">
+      <label class="mono" for="langSel" style="font-size:12px;color:var(--muted)">LANG</label>
+      <select id="langSel" aria-label="Language">
+        <option value="en">English</option>
+        <option value="zh-Hans">简体中文</option>
+        <option value="zh-Hant">繁體中文</option>
+      </select>
+    </div>
   </nav>
 
   <main class="wrap" role="main">
-    <h1>Test your IPv4 / IPv6 connectivity.</h1>
-    <p class="sub" id="summary">
-      原理：你的浏览器会被要求访问一组不同 DNS 记录形态的资源（仅 A / 仅 AAAA / 双栈）。
-      成功与失败的组合能快速判断：你是否具备 IPv6、是否具备 IPv4、以及双栈访问是否正常。
-    </p>
+    <h1 id="title">IPv4 / IPv6 Test</h1>
+    <p class="sub" id="subtitle">Check whether your network supports IPv4/IPv6 and view your public IPs.</p>
 
-    <div class="row">
+    <div class="bar">
       <button id="btn">Replay</button>
-      <span class="pill"><span class="spin" id="spinner" aria-hidden="true"></span>&nbsp;<span id="state">pending</span></span>
-      <span class="pill">Dual-stack connection: <span id="dualConn" class="mono">-</span></span>
     </div>
 
-    <section class="grid" aria-label="Results layout">
-      <div class="scoreBox" aria-live="polite">
-        <div style="font-weight:800">Your readiness score</div>
-        <div class="scoreNum"><span id="score">-</span><span style="font-size:18px;font-weight:800">/10</span></div>
-        <div class="scoreHint" id="scoreHint">
-          评分是一个便于理解的“合格/不合格”信号：IPv4-only、IPv6-only、Dual-stack 都有对应的预期结果。
+    <section class="grid" aria-label="Results">
+      <div class="card" aria-live="polite">
+        <p class="k" id="kV4">IPv4 record</p>
+        <div class="row">
+          <p class="v"><span class="tag" id="sV4">…</span></p>
+          <p class="v mono" id="ipV4">-</p>
         </div>
+        <div class="meta mono" id="mV4">-</div>
       </div>
 
-      <div class="panel" id="tests">
-        <div class="panelHd">
-          <span>Tests Run</span>
-          <span class="mono" id="ts">-</span>
+      <div class="card" aria-live="polite">
+        <p class="k" id="kV6">IPv6 record</p>
+        <div class="row">
+          <p class="v"><span class="tag" id="sV6">…</span></p>
+          <p class="v mono" id="ipV6">-</p>
         </div>
+        <div class="meta mono" id="mV6">-</div>
+      </div>
 
-        <table aria-label="Tests table">
-          <thead>
-            <tr>
-              <th style="width:52%">Test</th>
-              <th style="width:24%">Status</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="tname">Test with IPv4 DNS record</div>
-                <div class="tdesc">访问仅有 A 记录的探针域名，预期使用 IPv4。</div>
-              </td>
-              <td>
-                <div class="status" id="s4">pending</div>
-                <div class="meta mono" id="m4">-</div>
-              </td>
-              <td class="mono" id="d4">-</td>
-            </tr>
-
-            <tr>
-              <td>
-                <div class="tname">Test with IPv6 DNS record</div>
-                <div class="tdesc">访问仅有 AAAA 记录的探针域名，预期使用 IPv6。</div>
-              </td>
-              <td>
-                <div class="status" id="s6">pending</div>
-                <div class="meta mono" id="m6">-</div>
-              </td>
-              <td class="mono" id="d6">-</td>
-            </tr>
-
-            <tr>
-              <td>
-                <div class="tname">Test with Dual Stack DNS record</div>
-                <div class="tdesc">访问双栈域名（A+AAAA）。此项最关键：应当至少能用某一栈连通。</div>
-              </td>
-              <td>
-                <div class="status" id="sds">pending</div>
-                <div class="meta mono" id="mds">-</div>
-              </td>
-              <td class="mono" id="dds">-</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="foot">
-          备注：某些 IPv6-only 网络可能通过 NAT64/DNS64/代理仍能访问 “IPv4 探针”，这不一定代表你有原生 IPv4。
-          本页主要用于快速诊断与自检。
+      <div class="card" aria-live="polite">
+        <p class="k" id="kDS">Dual stack</p>
+        <div class="row">
+          <p class="v"><span class="tag" id="sDS">…</span></p>
+          <p class="v mono" id="ipDS">-</p>
         </div>
+        <div class="meta mono" id="mDS">-</div>
       </div>
     </section>
 
-    <details id="debug">
-      <summary>Debug (raw JSON)</summary>
+    <details>
+      <summary id="dbgTitle">Debug</summary>
       <pre id="raw">（empty）</pre>
     </details>
   </main>
@@ -172,38 +116,72 @@
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const host = location.hostname;
-  $("host").textContent = host;
 
-  const endpoints = {
-    v4: "https://test-v4.jsw.ac.cn/api/ip",
-    v6: "https://test-v6.jsw.ac.cn/api/ip",
-    ds: "/api/ip"
+  const T = {
+    en: {
+      title: "Test your IPv4 / IPv6 connectivity.",
+      subtitle: "Check whether your network supports IPv4/IPv6 and view your public IPs.",
+      replay: "Replay",
+      dbg: "Debug",
+      labels: { v4: "IPv4 record", v6: "IPv6 record", ds: "Dual stack" },
+      state: { pending: "pending", done: "done" },
+      status: { pass: "PASS", fail: "FAIL", warn: "WARN" },
+      expected: { v4: "expected ipv4", v6: "expected ipv6" },
+      failed: "Failed to fetch"
+    },
+    "zh-Hans": {
+      title: "测试你的 IPv4 / IPv6 连通性",
+      subtitle: "快速查看你的网络是否支持 IPv4/IPv6，并展示公网出口地址。",
+      replay: "重新测试",
+      dbg: "调试信息",
+      labels: { v4: "IPv4 记录", v6: "IPv6 记录", ds: "双栈" },
+      state: { pending: "测试中", done: "完成" },
+      status: { pass: "通过", fail: "失败", warn: "警告" },
+      expected: { v4: "预期 ipv4", v6: "预期 ipv6" },
+      failed: "请求失败"
+    },
+    "zh-Hant": {
+      title: "測試你的 IPv4 / IPv6 連通性",
+      subtitle: "快速查看你的網路是否支援 IPv4/IPv6，並顯示公網出口位址。",
+      replay: "重新測試",
+      dbg: "除錯資訊",
+      labels: { v4: "IPv4 記錄", v6: "IPv6 記錄", ds: "雙棧" },
+      state: { pending: "測試中", done: "完成" },
+      status: { pass: "通過", fail: "失敗", warn: "警告" },
+      expected: { v4: "預期 ipv4", v6: "預期 ipv6" },
+      failed: "請求失敗"
+    }
   };
 
-  const weights = { v4: 3, v6: 4, ds: 3 }; // 合计 10
-
-  function setPending() {
-    $("spinner").style.display = "inline-block";
-    $("state").textContent = "pending";
-    $("ts").textContent = new Date().toISOString();
-    $("score").textContent = "-";
-    $("dualConn").textContent = "-";
-    for (const k of ["4","6","ds"]) {
-      $("s"+k).textContent = "pending";
-      $("s"+k).className = "status";
-      $("m"+k).textContent = "-";
-      $("d"+k).textContent = "-";
+  function detectLang() {
+    const L = ((navigator.languages && navigator.languages[0]) || navigator.language || "en").toLowerCase();
+    if (L.startsWith("zh")) {
+      const hant = /tw|hk|mo|hant/.test(L);
+      return hant ? "zh-Hant" : "zh-Hans";
     }
-    $("raw").textContent = "（empty）";
+    return "en";
   }
 
-  function mark(id, kind, ms, detail, ip, fam) {
-    const s = $("s"+id), m = $("m"+id), d = $("d"+id);
-    s.textContent = kind.toUpperCase();
-    s.className = "status " + (kind === "ok" ? "ok" : kind === "warn" ? "warn" : "bad");
-    m.textContent = (typeof ms === "number" ? (ms.toFixed(1) + " ms") : "-") + (fam ? (" · " + fam) : "");
-    d.textContent = ip ? (ip + (detail ? (" · " + detail) : "")) : (detail || "-");
+  function applyLang(lang) {
+    const t = T[lang] || T.en;
+    document.documentElement.lang = lang === "zh-Hans" ? "zh-CN" : (lang === "zh-Hant" ? "zh-TW" : "en");
+    $("title").textContent = t.title;
+    $("subtitle").textContent = t.subtitle;
+    $("btn").textContent = t.replay;
+    $("dbgTitle").textContent = t.dbg;
+    $("kV4").textContent = t.labels.v4;
+    $("kV6").textContent = t.labels.v6;
+    $("kDS").textContent = t.labels.ds;
+  }
+
+  function setState(lang, key) {
+    const t = T[lang] || T.en;
+    $("statePill").textContent = t.state[key] || key;
+  }
+
+  function tag(el, kind, text) {
+    el.className = "tag " + (kind === "ok" ? "ok" : kind === "warn" ? "warn" : "bad");
+    el.textContent = text;
   }
 
   async function fetchJSON(url, timeoutMs) {
@@ -221,78 +199,93 @@
     }
   }
 
-  function familyOK(expected, got) {
-    if (!expected) return true;
-    return expected === got;
+  function showResult(lang, which, kind, ip, fam, ms, note) {
+    const t = T[lang] || T.en;
+    const s = which === "v4" ? $("sV4") : which === "v6" ? $("sV6") : $("sDS");
+    const ipEl = which === "v4" ? $("ipV4") : which === "v6" ? $("ipV6") : $("ipDS");
+    const m = which === "v4" ? $("mV4") : which === "v6" ? $("mV6") : $("mDS");
+
+    tag(s, kind, kind === "ok" ? t.status.pass : kind === "warn" ? t.status.warn : t.status.fail);
+    ipEl.textContent = ip || "-";
+    const parts = [];
+    if (typeof ms === "number" && isFinite(ms)) parts.push(ms.toFixed(1) + " ms");
+    if (fam) parts.push(fam);
+    if (note) parts.push(note);
+    m.textContent = parts.length ? parts.join(" · ") : "-";
   }
 
-  async function run() {
-    setPending();
-    const timeout = 5000;
-    const rawPack = {};
+  const langSel = $("langSel");
+  let lang = detectLang();
+  langSel.value = lang;
+  applyLang(lang);
 
-    // dual-stack (same origin)
+  $("host").textContent = location.hostname;
+
+  const endpoints = {
+    v4: "https://test-v4.jsw.ac.cn/api/ip",
+    v6: "https://test-v6.jsw.ac.cn/api/ip",
+    ds: "/api/ip"
+  };
+
+  async function run() {
+    const t = T[lang] || T.en;
+    setState(lang, "pending");
+    $("raw").textContent = "（empty）";
+
+    showResult(lang, "v4", "warn", "-", "", NaN, "…");
+    showResult(lang, "v6", "warn", "-", "", NaN, "…");
+    showResult(lang, "ds", "warn", "-", "", NaN, "…");
+
+    const pack = { ts: new Date().toISOString() };
+    const timeout = 5000;
+
+    // dual (same origin)
     try {
       const { ms, data } = await fetchJSON(endpoints.ds, timeout);
-      rawPack.dual = data;
-      $("dualConn").textContent = (data.ip || "-") + " (" + (data.family || "unknown") + ")";
-      mark("ds", "ok", ms, "host=" + (data.host || host), data.ip || "", data.family || "");
+      pack.dual = data;
+      showResult(lang, "ds", "ok", data.ip || "", data.family || "", ms, data.host ? ("host=" + data.host) : "");
     } catch (e) {
-      rawPack.dual_error = String(e && e.message ? e.message : e);
-      mark("ds", "bad", NaN, rawPack.dual_error, "", "");
+      pack.dual_error = String(e && e.message ? e.message : e);
+      showResult(lang, "ds", "bad", "", "", NaN, pack.dual_error);
     }
 
-    // v4 & v6 in parallel
-    const tasks = [
+    // v4 + v6 parallel
+    await Promise.allSettled([
       (async () => {
         try {
           const { ms, data } = await fetchJSON(endpoints.v4, timeout);
-          rawPack.v4 = data;
-          const ok = familyOK("ipv4", data.family);
-          mark("4", ok ? "ok" : "warn", ms, "expected ipv4", data.ip || "", data.family || "");
+          pack.v4 = data;
+          const ok = (data.family === "ipv4");
+          showResult(lang, "v4", ok ? "ok" : "warn", data.ip || "", data.family || "", ms, ok ? "" : t.expected.v4);
         } catch (e) {
-          rawPack.v4_error = String(e && e.message ? e.message : e);
-          mark("4", "bad", NaN, rawPack.v4_error, "", "");
+          pack.v4_error = String(e && e.message ? e.message : e);
+          showResult(lang, "v4", "bad", "", "", NaN, t.failed);
         }
       })(),
       (async () => {
         try {
           const { ms, data } = await fetchJSON(endpoints.v6, timeout);
-          rawPack.v6 = data;
-          const ok = familyOK("ipv6", data.family);
-          mark("6", ok ? "ok" : "warn", ms, "expected ipv6", data.ip || "", data.family || "");
+          pack.v6 = data;
+          const ok = (data.family === "ipv6");
+          showResult(lang, "v6", ok ? "ok" : "warn", data.ip || "", data.family || "", ms, ok ? "" : t.expected.v6);
         } catch (e) {
-          rawPack.v6_error = String(e && e.message ? e.message : e);
-          mark("6", "bad", NaN, rawPack.v6_error, "", "");
+          pack.v6_error = String(e && e.message ? e.message : e);
+          showResult(lang, "v6", "bad", "", "", NaN, t.failed);
         }
-      })(),
-    ];
+      })()
+    ]);
 
-    await Promise.allSettled(tasks);
-
-    // score
-    let score = 0;
-    const s4 = $("s4").textContent;
-    const s6 = $("s6").textContent;
-    const sds = $("sds").textContent;
-
-    if (s4 === "OK") score += weights.v4;
-    else if (s4 === "WARN") score += Math.max(1, weights.v4 - 1);
-
-    if (s6 === "OK") score += weights.v6;
-    else if (s6 === "WARN") score += Math.max(1, weights.v6 - 1);
-
-    if (sds === "OK") score += weights.ds;
-    else if (sds === "WARN") score += Math.max(1, weights.ds - 1);
-
-    $("score").textContent = String(score);
-
-    $("spinner").style.display = "none";
-    $("state").textContent = "done";
-    $("raw").textContent = JSON.stringify(rawPack, null, 2);
+    $("raw").textContent = JSON.stringify(pack, null, 2);
+    setState(lang, "done");
   }
 
   $("btn").addEventListener("click", run);
+  langSel.addEventListener("change", () => {
+    lang = langSel.value;
+    applyLang(lang);
+    run();
+  });
+
   run();
 })();
 </script>

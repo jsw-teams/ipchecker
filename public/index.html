@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>JSW IP 检测（IPv4 / IPv6）</title>
+  <style>
+    html,body{margin:0;padding:0;background:#fff;color:#000;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif}
+    a{color:inherit}
+    .wrap{max-width:860px;margin:0 auto;padding:20px}
+    h1{font-size:22px;margin:0 0 12px}
+    .sub{font-size:14px;line-height:1.6;margin:0 0 18px;opacity:.85}
+    .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+    button{background:#000;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer}
+    button:focus{outline:3px solid #000;outline-offset:2px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    .card{border:1px solid #000;border-radius:14px;padding:14px}
+    .k{font-size:12px;opacity:.8;margin:0 0 6px}
+    .v{font-size:16px;margin:0 0 8px;word-break:break-all}
+    .small{font-size:12px;opacity:.8;margin:0}
+    .ok{font-weight:700}
+    .bad{font-weight:700}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <main class="wrap" role="main">
+    <h1>JSW IP 检测（IPv4 / IPv6）</h1>
+    <p class="sub">
+      本页会并行请求 <span class="mono">v4</span> 与 <span class="mono">v6</span> 探针域名的 <span class="mono">/api/ip</span>，
+      用来判断你当前网络的 IPv4 / IPv6 可用性与出口地址。
+    </p>
+
+    <div class="bar">
+      <button id="btn">刷新检测</button>
+      <span class="small">当前页面域名：<span id="host" class="mono"></span></span>
+    </div>
+
+    <section class="grid" aria-label="检测结果">
+      <div class="card" aria-live="polite">
+        <p class="k">IPv4 探针（v4.jsw.ac.cn）</p>
+        <p class="v" id="v4ip">检测中…</p>
+        <p class="small" id="v4meta"></p>
+      </div>
+
+      <div class="card" aria-live="polite">
+        <p class="k">IPv6 探针（v6.jsw.ac.cn）</p>
+        <p class="v" id="v6ip">检测中…</p>
+        <p class="small" id="v6meta"></p>
+      </div>
+    </section>
+
+    <p class="small" style="margin-top:14px">
+      提示：如果你的网络没有 IPv6，IPv6 探针可能会超时或失败；这是正常现象。
+    </p>
+  </main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const elHost = $("host"), elBtn = $("btn");
+  const elV4ip = $("v4ip"), elV4meta = $("v4meta");
+  const elV6ip = $("v6ip"), elV6meta = $("v6meta");
+
+  const host = location.hostname;
+  elHost.textContent = host;
+
+  const base = host.replace(/^test\./, "");
+  const v4URL = `https://v4.${base}/api/ip?ts=${Date.now()}`;
+  const v6URL = `https://v6.${base}/api/ip?ts=${Date.now()}`;
+
+  async function fetchJSON(url, ms) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), ms);
+    try {
+      const r = await fetch(url, { cache: "no-store", signal: ac.signal });
+      const txt = await r.text();
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return JSON.parse(txt);
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  function showOK(elIp, elMeta, data) {
+    elIp.innerHTML = `<span class="ok">✓</span> <span class="mono">${data.ip || "-"}</span>`;
+    elMeta.textContent = `${data.family || "unknown"} · host=${data.host || "-"}`;
+  }
+
+  function showBad(elIp, elMeta, err) {
+    elIp.innerHTML = `<span class="bad">✗</span> 失败`;
+    elMeta.textContent = String(err && err.message ? err.message : err);
+  }
+
+  async function run() {
+    elV4ip.textContent = "检测中…"; elV4meta.textContent = "";
+    elV6ip.textContent = "检测中…"; elV6meta.textContent = "";
+
+    const tmo = 4500;
+
+    await Promise.allSettled([
+      fetchJSON(v4URL, tmo).then(d => showOK(elV4ip, elV4meta, d)).catch(e => showBad(elV4ip, elV4meta, e)),
+      fetchJSON(v6URL, tmo).then(d => showOK(elV6ip, elV6meta, d)).catch(e => showBad(elV6ip, elV6meta, e)),
+    ]);
+  }
+
+  elBtn.addEventListener("click", run);
+  run();
+})();
+</script>
+</body>
+</html>

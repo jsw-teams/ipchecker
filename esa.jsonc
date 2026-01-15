@@ -1,0 +1,9 @@
+{
+  "name": "jsw-ip-probe",
+  "entry": "./src/index.js",
+  "installCommand": "",
+  "buildCommand": "",
+  "assets": {
+    "directory": "./public"
+  }
+}

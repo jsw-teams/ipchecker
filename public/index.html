@@ -6,256 +6,82 @@
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="referrer" content="no-referrer" />
-  <meta name="description" content="IP check. Shows which IP version you are using and a friendly greeting based on your location." />
-  <title>IP检测 | 技术网</title>
-  <style>
-    :root{
-      --bg:#fff;--fg:#000;--muted:#333;--line:#000;
-      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-      --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif;
-    }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans)}
-    .wrap{max-width:980px;margin:0 auto;padding:22px 14px 34px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .brand{font-weight:900}
-    .brand small{font-weight:700;opacity:.65;margin-left:8px}
-    h1{margin:18px 0 8px;font-size:28px;font-weight:900;letter-spacing:.2px}
-    .sub{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.7}
-    .card{border:1px solid var(--line);border-radius:14px;padding:18px}
-    .hero{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
-    .big{font-size:46px;font-weight:900;line-height:1.05;margin:0}
-    .hint{margin:10px 0 0;font-size:16px;line-height:1.7}
-    .hint b{font-weight:900}
-    .mono{font-family:var(--mono);word-break:break-all}
-    .ipline{margin-top:14px;font-size:15px}
-    .ipline .mono{font-weight:800}
-    .meta{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.7}
-    .row{margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    button{
-      background:#000;color:#fff;border:0;border-radius:10px;
-      padding:11px 16px;font-size:14px;cursor:pointer
-    }
-    button:focus{outline:3px solid #000;outline-offset:2px}
-    .soft{opacity:.9}
-  </style>
+  <meta name="description" content="IPv4 / IPv6 check. Shows which IP version you are using and a friendly greeting based on your location." />
+  <title>IPv4 / IPv6 Check | JSW</title>
+  <link rel="stylesheet" href="/app.css" />
+  <script defer src="/app.js"></script>
 </head>
 <body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">JSW</span>
+      <span class="muted" id="tagline">—</span>
+    </div>
+
+    <div class="statusbar" aria-live="polite">
+      <span class="chip" id="chipFamily">…</span>
+      <span class="chip mono" id="chipIP">…</span>
+      <button class="btn" id="btnRetry" type="button">Replay</button>
+    </div>
+  </header>
+
   <main class="wrap" role="main">
-    <header>
-      <div class="brand">技术网 <small class="mono" id="host"></small></div>
-    </header>
+    <h1 id="title">IPv4 / IPv6 Check</h1>
+    <p class="sub" id="subtitle">Shows which IP version your current connection uses.</p>
 
-    <h1 id="title">你的IP地址</h1>
-    <section class="card" aria-live="polite">
-      <div class="hero">
-        <p class="big" id="headline">…</p>
-      </div>
+    <section class="grid" aria-label="Result grid">
+      <article class="card card-hero" aria-live="polite">
+        <div class="hero-line">
+          <div class="hero-big" id="headline">…</div>
+          <div class="hero-note" id="headlineNote">…</div>
+        </div>
 
-      <p class="hint" id="greet">…</p>
+        <div class="divider"></div>
 
-      <div class="ipline" id="ipline" style="display:none">
-        IP：<span class="mono" id="ip">-</span>
-      </div>
+        <div class="greet" id="greet">…</div>
 
-      <div class="meta" id="locline" style="display:none"></div>
+        <div class="divider"></div>
 
-      <div class="row">
-        <button id="btn">重新测试</button>
-        <span class="meta soft" id="tinyNote"></span>
-      </div>
+        <div class="kv">
+          <div class="kv-row">
+            <div class="k" id="kLocation">Location</div>
+            <div class="v" id="vLocation">-</div>
+          </div>
+          <div class="kv-row">
+            <div class="k" id="kISP">ISP</div>
+            <div class="v" id="vISP">-</div>
+          </div>
+        </div>
+      </article>
+
+      <aside class="card card-side" aria-label="Details and tips">
+        <h2 class="h2" id="hDetails">Details</h2>
+
+        <div class="kv">
+          <div class="kv-row">
+            <div class="k" id="kIP">Public IP</div>
+            <div class="v mono" id="vIP">-</div>
+          </div>
+          <div class="kv-row">
+            <div class="k" id="kStack">IP stack</div>
+            <div class="v mono" id="vStack">-</div>
+          </div>
+          <div class="kv-row">
+            <div class="k" id="kTime">Time</div>
+            <div class="v mono" id="vTime">-</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2 class="h2" id="hTips">Suggestions</h2>
+        <ul class="tips" id="tips">
+          <li>…</li>
+        </ul>
+
+        <p class="footnote" id="footnote">—</p>
+      </aside>
     </section>
   </main>
-
-<script>
-(() => {
-  const $ = (id) => document.getElementById(id);
-
-  // 语言：只跟随浏览器，不允许二次变更
-  const L = ((navigator.languages && navigator.languages[0]) || navigator.language || "en").toLowerCase();
-  const isZh = L.startsWith("zh");
-  const isHant = isZh && (/tw|hk|mo|hant/.test(L));
-  const lang = isZh ? (isHant ? "zh-Hant" : "zh-Hans") : "en";
-  document.documentElement.lang = isZh ? (isHant ? "zh-TW" : "zh-CN") : "en";
-
-  // 顶部只显示 host（你要去掉的话，直接把这一行改成空字符串即可）
-  $("host").textContent = "";
-
-  const T = {
-    en: {
-      title: "IP Check",
-      retry: "Replay",
-      head_v6: "On IPv6",
-      head_v4: "On IPv4",
-      head_u: "Unknown",
-      v6_hint: "Nice — you can reach IPv6-only websites.",
-      v4_hint: "Your network currently prefers IPv4.",
-      u_hint: "Could not determine the IP family from this request.",
-      ip_label: "IP:",
-      loc_label: "Location:",
-      isp_label: "ISP:",
-      note: ""
-    },
-    "zh-Hans": {
-      title: "IP 检测",
-      retry: "重新测试",
-      head_v6: "当前使用 IPv6",
-      head_v4: "当前使用 IPv4",
-      head_u: "暂时无法判断",
-      v6_hint: "太棒了：你可以访问纯 IPv6 网站。",
-      v4_hint: "此刻网络更偏向 IPv4。",
-      u_hint: "本次请求没有得到可判断的 IP 协议栈信息。",
-      ip_label: "IP：",
-      loc_label: "归属地：",
-      isp_label: "运营商：",
-      note: ""
-    },
-    "zh-Hant": {
-      title: "IP 檢測",
-      retry: "重新測試",
-      head_v6: "目前使用 IPv6",
-      head_v4: "目前使用 IPv4",
-      head_u: "暫時無法判斷",
-      v6_hint: "太棒了：你可以存取純 IPv6 網站。",
-      v4_hint: "此刻網路更偏向 IPv4。",
-      u_hint: "本次請求沒有得到可判斷的 IP 協定棧資訊。",
-      ip_label: "IP：",
-      loc_label: "歸屬地：",
-      isp_label: "電信商：",
-      note: ""
-    }
-  };
-
-  const t = T[lang] || T.en;
-  $("title").textContent = t.title;
-  $("btn").textContent = t.retry;
-
-  function niceLocParts(info) {
-    const city = (info && (info.ip_city_en || info.ip_city)) || "";
-    const region = (info && (info.ip_region_en || info.ip_region)) || "";
-    const country = (info && (info.ip_country_en || info.ip_country)) || "";
-    const isp = (info && (info.ip_isp_en || info.ip_isp)) || "";
-    return { city, region, country, isp };
-  }
-
-  // 按归属地打招呼（尽量稳：先国家，再省/市关键词）
-  function greetByLocation(info, fam) {
-    const { city, region, country } = niceLocParts(info);
-    const loc = [city, region, country].filter(Boolean).join(", ").toLowerCase();
-
-    if (lang === "en") {
-      if (loc.includes("hong kong")) return "Hello Hong Kong! Hope your day is smooth and fast.";
-      if (loc.includes("macau")) return "Hello Macau! Wishing you a calm, steady connection.";
-      if (loc.includes("taiwan")) return "Hello Taiwan! Have a great day and a stable network.";
-      if (loc.includes("china")) {
-        if (loc.includes("beijing")) return "Hello Beijing! May your packets fly straight and fast.";
-        if (loc.includes("shanghai")) return "Hello Shanghai! Stay sharp, stay connected.";
-        if (loc.includes("guangdong") || loc.includes("shenzhen") || loc.includes("guangzhou"))
-          return "Hello Guangdong! Sending you some warm, speedy vibes.";
-        if (loc.includes("fujian") || loc.includes("xiamen") || loc.includes("quanzhou"))
-          return "Hello Fujian! Hope your connection is as sunny as the coast.";
-        if (loc.includes("chongqing")) return "Hello Chongqing! Hotpot-level warmth, fiber-level speed.";
-        if (loc.includes("sichuan") || loc.includes("chengdu")) return "Hello Sichuan! Smooth as a river, fast as light.";
-        return "Hello from China! Hope your connection stays stable today.";
-      }
-      if (country) return `Hello ${country}! Thanks for dropping by.`;
-      return fam === "ipv6" ? "Hello there! IPv6 looks great on you." : "Hello there! Thanks for visiting.";
-    }
-
-    // 中文（简/繁）
-    const isHans = lang === "zh-Hans";
-    const hk = isHans ? "香港" : "香港";
-    const mo = isHans ? "澳门" : "澳門";
-    const tw = isHans ? "台湾" : "臺灣";
-    const cn = isHans ? "中国" : "中國";
-
-    // 用英文字段时也能匹配到（比如 country_en=China）
-    const locRaw = [info?.ip_city_en, info?.ip_region_en, info?.ip_country_en, info?.ip_city, info?.ip_region, info?.ip_country]
-      .filter(Boolean).join(" ").toLowerCase();
-
-    const has = (s) => locRaw.includes(s.toLowerCase());
-
-    if (has("hong kong") || has("香港")) return `${hk}的朋友你好～今天也要顺顺利利！`.replace("顺顺利利", isHans ? "顺顺利利" : "順順利利");
-    if (has("macau") || has("澳门") || has("澳門")) return `${mo}的朋友你好～祝你网络一路畅通！`;
-    if (has("taiwan") || has("台湾") || has("臺灣")) return `${tw}的朋友你好～愿你今天心情和网速都在线！`;
-    if (has("china") || has("中国") || has("中國")) {
-      if (has("beijing") || has("北京")) return `北京的朋友你好～祝你一路低延迟！`;
-      if (has("shanghai") || has("上海")) return `上海的朋友你好～今天也要稳定在线！`;
-      if (has("guangdong") || has("广东") || has("廣東") || has("shenzhen") || has("深圳") || has("guangzhou") || has("广州") || has("廣州"))
-        return `广东的朋友你好～祝你一路飞快！`.replace("广东", isHans ? "广东" : "廣東");
-      if (has("fujian") || has("福建") || has("xiamen") || has("厦门") || has("廈門") || has("quanzhou") || has("泉州"))
-        return `福建的朋友你好～海风顺、网速也要顺！`;
-      if (has("chongqing") || has("重庆") || has("重慶"))
-        return `重庆的朋友你好～火锅般热情，光纤般顺滑！`.replace("重庆", isHans ? "重庆" : "重慶");
-      if (has("sichuan") || has("四川") || has("chengdu") || has("成都"))
-        return `四川的朋友你好～安逸在线，稳稳当当！`;
-      return `${cn}的朋友你好～祝你今天网络稳定！`;
-    }
-    // 海外
-    const countryName = (info && (info.ip_country || info.ip_country_en)) || "";
-    if (countryName) return `${countryName} 的朋友你好～欢迎来玩！`;
-    return fam === "ipv6" ? (isHans ? "你好～IPv6 很棒，继续保持！" : "你好～IPv6 很棒，繼續保持！") : "你好～欢迎来玩！";
-  }
-
-  async function run() {
-    $("headline").textContent = "…";
-    $("greet").textContent = "…";
-    $("ipline").style.display = "none";
-    $("locline").style.display = "none";
-    $("tinyNote").textContent = "";
-
-    try {
-      const r = await fetch(`/api/ip?ts=${Date.now()}`, { cache: "no-store" });
-      const txt = await r.text();
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const data = JSON.parse(txt);
-
-      const fam = data.family || "unknown";
-      const ip = data.ip || "";
-      const info = data.info || {};
-
-      // 结论大字
-      if (fam === "ipv6") {
-        $("headline").textContent = t.head_v6;
-        $("tinyNote").textContent = t.v6_hint;
-      } else if (fam === "ipv4") {
-        $("headline").textContent = t.head_v4;
-        $("tinyNote").textContent = t.v4_hint;
-      } else {
-        $("headline").textContent = t.head_u;
-        $("tinyNote").textContent = t.u_hint;
-      }
-
-      // 招呼（按归属地）
-      $("greet").innerHTML = `<b>${greetByLocation(info, fam)}</b>`;
-
-      // IP 显示
-      if (ip) {
-        $("ip").textContent = ip;
-        $("ipline").style.display = "";
-      }
-
-      // 归属地行（城市/省/国家 + ISP）
-      const { city, region, country, isp } = niceLocParts(info);
-      const locParts = [city, region, country].filter(Boolean);
-      const locText = locParts.length ? locParts.join(" · ") : "";
-      const ispText = isp ? isp : "";
-      const lines = [];
-      if (locText) lines.push(`${t.loc_label} ${locText}`);
-      if (ispText) lines.push(`${t.isp_label} ${ispText}`);
-
-      if (lines.length) {
-        $("locline").textContent = lines.join("  |  ");
-        $("locline").style.display = "";
-      }
-    } catch (e) {
-      $("headline").textContent = t.head_u;
-      $("greet").textContent = String(e && e.message ? e.message : e);
-    }
-  }
-
-  $("btn").addEventListener("click", run);
-  run();
-})();
-</script>
 </body>
 </html>
